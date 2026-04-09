@@ -1760,7 +1760,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/ykube-app/kr8-operator:v0.0.1
+        image: ghcr.io/ykube-app/kr8-operator:v0.0.2
         livenessProbe:
           httpGet:
             path: /healthz
@@ -1768,10 +1768,7 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         name: manager
-        ports:
-        - containerPort: 9443
-          name: webhook-server
-          protocol: TCP
+        ports: []
         readinessProbe:
           httpGet:
             path: /readyz
@@ -1790,68 +1787,11 @@ spec:
           capabilities:
             drop:
             - ALL
-        volumeMounts:
-        - mountPath: /tmp/k8s-webhook-server/serving-certs
-          name: cert
-          readOnly: true
+        volumeMounts: []
       securityContext:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: kr8-controller-manager
       terminationGracePeriodSeconds: 10
-      volumes:
-      - name: cert
-        secret:
-          defaultMode: 420
-          secretName: webhook-server-cert
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: MutatingWebhookConfiguration
-metadata:
-  name: kr8-kr8-namespace-mutating
-webhooks:
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: operator-system
-      path: /mutate-v1-namespace
-  failurePolicy: Fail
-  name: mnamespace.kb.io
-  rules:
-  - apiGroups:
-    - ""
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    resources:
-    - namespaces
-  sideEffects: None
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingWebhookConfiguration
-metadata:
-  name: kr8-kr8-namespace-validating
-webhooks:
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: operator-system
-      path: /validate-v1-namespace
-  failurePolicy: Fail
-  name: vnamespace.kb.io
-  rules:
-  - apiGroups:
-    - ""
-    apiVersions:
-    - v1
-    operations:
-    - UPDATE
-    resources:
-    - namespaces
-  sideEffects: None
+      volumes: []
