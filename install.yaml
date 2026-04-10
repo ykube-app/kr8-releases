@@ -1475,6 +1475,7 @@ rules:
   - kr8.ykube.app
   resources:
   - applications
+  - capabilities
   - gitrepositories
   - platforms
   verbs:
@@ -1760,7 +1761,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/ykube-app/kr8-operator:v0.0.2
+        image: ghcr.io/ykube-app/kr8-operator:v0.0.3
         livenessProbe:
           httpGet:
             path: /healthz
