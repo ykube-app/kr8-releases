@@ -920,6 +920,12 @@ metadata:
   name: kr8-controller-manager
   namespace: kr8-system
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kr8-kr8-backend
+  namespace: kr8-system
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -1367,6 +1373,18 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: kr8-kr8-backend
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
   name: kr8-kr8-namespace-creator
 rules:
 - apiGroups:
@@ -1443,6 +1461,7 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - secrets
   - services
   verbs:
   - create
@@ -1490,6 +1509,7 @@ rules:
   - kr8.ykube.app
   resources:
   - applications/finalizers
+  - capabilities/finalizers
   - gitrepositories/finalizers
   - platforms/finalizers
   verbs:
@@ -1498,6 +1518,7 @@ rules:
   - kr8.ykube.app
   resources:
   - applications/status
+  - capabilities/status
   - gitrepositories/status
   - platforms/status
   verbs:
@@ -1647,15 +1668,15 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kr8-kr8-admin-binding
+  name: kr8-kr8-backend
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kr8-kr8-admin
+  name: kr8-kr8-backend
 subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: admin
+- kind: ServiceAccount
+  name: kr8-kr8-backend
+  namespace: kr8-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -1761,7 +1782,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/ykube-app/kr8-operator:v0.0.3
+        image: ghcr.io/ykube-app/kr8-operator:v0.0.4
         livenessProbe:
           httpGet:
             path: /healthz
@@ -1779,10 +1800,10 @@ spec:
         resources:
           limits:
             cpu: 500m
-            memory: 128Mi
+            memory: 512Mi
           requests:
-            cpu: 10m
-            memory: 64Mi
+            cpu: 250m
+            memory: 256Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
