@@ -914,16 +914,16 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: operator
-  name: kr8-controller-manager
+  name: kr8-backend
   namespace: kr8-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kr8-kr8-backend
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: operator
+  name: kr8-controller-manager
   namespace: kr8-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1108,6 +1108,61 @@ rules:
   - applicationdefinitions/status
   verbs:
   - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kr8-backend
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - users
+  - groups
+  - serviceaccounts
+  verbs:
+  - impersonate
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - userextras
+  verbs:
+  - impersonate
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - list
+  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -1373,18 +1428,6 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kr8-kr8-backend
-rules:
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
   name: kr8-kr8-namespace-creator
 rules:
 - apiGroups:
@@ -1486,15 +1529,9 @@ rules:
   - kr8.ykube.app
   resources:
   - applicationdefinitions
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - kr8.ykube.app
-  resources:
   - applications
   - capabilities
+  - capabilitydefinitions
   - gitrepositories
   - platforms
   verbs:
@@ -1668,15 +1705,28 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kr8-kr8-backend
+  name: kr8-backend
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kr8-kr8-backend
+  name: kr8-backend
 subjects:
 - kind: ServiceAccount
-  name: kr8-kr8-backend
+  name: kr8-backend
   namespace: kr8-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kr8-kr8-admin-group
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kr8-kr8-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: admin
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -1782,7 +1832,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/ykube-app/kr8-operator:v0.0.4
+        image: ghcr.io/ykube-app/kr8-operator:0.0.7
         livenessProbe:
           httpGet:
             path: /healthz
