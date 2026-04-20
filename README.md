@@ -22,7 +22,7 @@ kubectl apply -f https://github.com/ykube-app/kr8/releases/latest/download/insta
 For a specific version:
 
 ```sh
-kubectl apply -f https://github.com/ykube-app/kr8/releases/download/v0.0.7/install.yaml
+kubectl apply -f https://github.com/ykube-app/kr8/releases/download/v0.0.8/install.yaml
 ```
 
 This installs the CRDs and deploys the operator in the `kr8-system` namespace.
@@ -66,7 +66,7 @@ The console and backend are a single combined image. To have the operator deploy
 
 ```sh
 kubectl patch deployment kr8-controller-manager -n kr8-system --type=json \
-  -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--console-image=ghcr.io/ykube-app/kr8-backend:v0.0.7"}]'
+  -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--console-image=ghcr.io/ykube-app/kr8-backend:v0.0.8"}]'
 ```
 
 **2. Enable the console on the Platform CR:**
@@ -162,8 +162,8 @@ cd console && npm test -- --run
 Push a version tag to build and publish all images and the install manifest:
 
 ```sh
-git tag v0.0.7
-git push origin v0.0.7
+git tag v0.0.8
+git push origin v0.0.8
 ```
 
 This triggers GitHub Actions to:

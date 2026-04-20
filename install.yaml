@@ -1832,7 +1832,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/ykube-app/kr8-operator:0.0.7
+        image: ghcr.io/ykube-app/kr8-operator:0.0.8
         livenessProbe:
           httpGet:
             path: /healthz
