@@ -929,7 +929,7 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kr8-helm-installer
+  name: kr8-kr8-helm-installer
   namespace: kr8-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1764,19 +1764,6 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kr8-helm-installer
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- kind: ServiceAccount
-  name: kr8-helm-installer
-  namespace: kr8-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
   name: kr8-kr8-admin-group
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -1786,6 +1773,19 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
   name: admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kr8-kr8-helm-installer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: kr8-kr8-helm-installer
+  namespace: kr8-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -1891,7 +1891,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/ykube-app/kr8-operator:0.0.11
+        image: ghcr.io/ykube-app/kr8-operator:0.1.1
         livenessProbe:
           httpGet:
             path: /healthz
