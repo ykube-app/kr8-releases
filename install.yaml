@@ -926,6 +926,12 @@ metadata:
   name: kr8-controller-manager
   namespace: kr8-system
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kr8-helm-installer
+  namespace: kr8-system
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -1380,6 +1386,20 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: kr8-helm-impersonator
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - kr8-helm-installer
+  resources:
+  - serviceaccounts
+  verbs:
+  - impersonate
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
   name: kr8-kr8-admin
 rules:
 - apiGroups:
@@ -1495,6 +1515,19 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - configmaps
+  - serviceaccounts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - namespaces
   verbs:
   - create
@@ -1508,18 +1541,6 @@ rules:
   - services
   verbs:
   - create
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - serviceaccounts
-  verbs:
-  - create
-  - delete
   - get
   - list
   - patch
@@ -1730,6 +1751,32 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
+  name: kr8-helm-impersonator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kr8-helm-impersonator
+subjects:
+- kind: ServiceAccount
+  name: kr8-controller-manager
+  namespace: kr8-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kr8-helm-installer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: kr8-helm-installer
+  namespace: kr8-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
   name: kr8-kr8-admin-group
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -1844,7 +1891,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/ykube-app/kr8-operator:0.0.9
+        image: ghcr.io/ykube-app/kr8-operator:0.0.11
         livenessProbe:
           httpGet:
             path: /healthz
